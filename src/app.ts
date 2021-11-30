@@ -1,6 +1,8 @@
 import express, {Request, Response, NextFunction} from 'express';
 import API_APPINESS from './config/config';
-import routes from './router/index';
+import auth from './router/auth';
+import { hasAuth } from './middleware/has_auth';
+import { authorization } from './controller/authorisation.controller';
 
 // Our Express APP config
 const app = express();
@@ -21,7 +23,8 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 // API Endpoints
-app.use(routes);
+app.get("/authorization", authorization);
+app.use('/auth', hasAuth, auth);
 
 // export our app
 export default app;
