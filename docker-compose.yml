@@ -18,8 +18,9 @@ services:
         links:
             - database
         command: bash -c "npm i && npm run serve"
-        network_mode: bridge
         restart: "always"
+        networks:
+          - api-auth-networks
 
     database:
         image: "postgres:13"
@@ -38,7 +39,12 @@ services:
         env_file:
           - .env
         command: -p ${POSTGRES_PORT}
-        network_mode: bridge
         restart: "always"
+        networks:
+          - api-auth-networks
+
 volumes:
     db-data:
+
+networks:
+    api-template-networks:
