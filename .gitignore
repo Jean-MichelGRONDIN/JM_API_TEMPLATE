@@ -6,3 +6,4 @@ dist/
 .env
 .nyc_output/
 logs.txt
+API/
