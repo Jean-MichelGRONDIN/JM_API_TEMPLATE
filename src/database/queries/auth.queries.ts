@@ -49,6 +49,7 @@ export const knexfindUserByPasswordAndEmail = (payload: signinDataFromRequest): 
 const GetRefreshTokenByToken = `
 SELECT user_id, token FROM refresh_token
 WHERE token = ?
+AND deleted_at IS NULL;
 `
 
 export const knexGetRefreshTokenByToken = (token: string): Knex.Raw<any> => {
@@ -59,6 +60,7 @@ const DeleteRefreshTokenByToken = `
 UPDATE refresh_token
 SET deleted_at = NOW()
 WHERE token = ?
+AND deleted_at IS NULL;
 `
 
 export const knexDeleteRefreshTokenByToken = (token: string): Knex.Raw<any> => {
