@@ -1,22 +1,22 @@
 import { Request, Response } from "express";
 import API_APPINESS from '../config/config';
+import { User } from './../utils/user';
 import jwt  from 'jsonwebtoken' ;
 import { signupData, signupDataFromRequest } from "../dataTransfertObject/signup.data";
 import { deleteRefreshTokenByToken, findUserByPasswordAndEmail, getRefreshTokenByToken, isUserExit, signup, SignupOutput, storeRefreshToken, UserFound } from "../action/auth.action";
 import { signinData } from "../dataTransfertObject/signin.data";
 import { refreshTokenData } from "../dataTransfertObject/refresh-token.data";
 import { ErrorDB } from "../database/errors";
-import { getCurrentUser } from "../utils/get_current_user";
 
 export let signupController = async (req: Request, res: Response) => {
     let data: signupDataFromRequest = signupData(req);
 
     let isUsr: (boolean | ErrorDB) = await isUserExit(data.email);
     if (isUsr instanceof ErrorDB) {
-        res.status(500).send({message: "ko", data: {isUsr}})
+        res.status(500).send({status: 500, message: "ko", data: {isUsr}})
         return
     } else if (isUsr) {
-        res.status(400).send({message: "ko", data: {error: "user already exist."}})
+        res.status(400).send({status: 400, message: "ko", data: {error: "user already exist."}})
         return
     }
 
@@ -25,16 +25,16 @@ export let signupController = async (req: Request, res: Response) => {
 
     let user: ErrorDB | SignupOutput | null = await signup(data); 
     if (user instanceof ErrorDB) {
-        res.status(500).send({message: "ko", data: {user}})
+        res.status(500).send({status: 500, message: "ko", data: {user}})
         return
     } else if (user === null) {
-        res.status(500).send({message: "ko", data: {"error": "the user's payload returned by the server is empty", "code": "USER_EMPTY"}})
+        res.status(500).send({status: 500, message: "ko", data: {"error": "the user's payload returned by the server is empty", "code": "USER_EMPTY"}})
         return
     }
 
     access_token = jwt.sign({id: user.id}, API_APPINESS.API.getInstance().Security.Secret, { expiresIn: ((60 * 60) * 24) * API_APPINESS.API.getInstance().Security.AccessTokenDuration });
     refresh_token = jwt.sign({}, API_APPINESS.API.getInstance().Security.Secret, { expiresIn: ((60 * 60) * 24) * API_APPINESS.API.getInstance().Security.RefreshTokenDuration });
-    
+
     let exp: (string | number | Date) = new Date();
     exp.setHours((24 * API_APPINESS.API.getInstance().Security.RefreshTokenDuration))
 
@@ -48,15 +48,16 @@ export let signupController = async (req: Request, res: Response) => {
 
     let err: ErrorDB | null = await storeRefreshToken(payload);
     if (err !== null) {
-        res.status(500).send({message: "ko", data: {err}})
+        res.status(500).send({status: 500, message: "ko", data: {err}})
         return
     }
 
     res.status(200).send({
-        "message": "ok",
-        "data": {
-            "access_token": access_token,
-            "refresh_token": refresh_token
+        status: 200,
+        message: "ok",
+        data: {
+            access_token: access_token,
+            refresh_token: refresh_token
         }
     })
 }
@@ -66,10 +67,10 @@ export let signinController = async (req: Request, res: Response) => {
 
     let user: (ErrorDB | UserFound | null) = await findUserByPasswordAndEmail(data);
     if (user instanceof ErrorDB) {
-        res.status(500).send({message: "ko", data: {user}})
+        res.status(500).send({status: 500, message: "ko", data: {user}})
         return
     } else if (user === null) {
-        res.status(500).send({message: "ko", data: {"error": "the user's payload returned by the server is empty", "code": "USER_EMPTY_FOUND"}})
+        res.status(500).send({status: 500, message: "ko", data: {"error": "the user's payload returned by the server is empty", "code": "USER_EMPTY_FOUND"}})
         return
     }
 
@@ -77,10 +78,10 @@ export let signinController = async (req: Request, res: Response) => {
     let access_token: string;
     access_token = jwt.sign({id: user.id}, API_APPINESS.API.getInstance().Security.Secret, { expiresIn: ((60 * 60) * 24) * API_APPINESS.API.getInstance().Security.AccessTokenDuration });
     refresh_token = jwt.sign({}, API_APPINESS.API.getInstance().Security.Secret, { expiresIn: ((60 * 60) * 24) * API_APPINESS.API.getInstance().Security.RefreshTokenDuration });
-    
+
     let exp: (string | number | Date) = new Date();
     exp.setHours((24 * API_APPINESS.API.getInstance().Security.RefreshTokenDuration))
-    
+
     const payload = {
         ip: req.ip,
         token: refresh_token,
@@ -91,15 +92,16 @@ export let signinController = async (req: Request, res: Response) => {
 
     let err: ErrorDB | null = await storeRefreshToken(payload);
     if (err !== null) {
-        res.status(500).send({message: "ko", data: {err}})
+        res.status(500).send({status: 500, message: "ko", data: {err}})
         return
     }
 
     res.status(200).send({
-        "message": "ok",
-        "data": {
-            "access_token": access_token,
-            "refresh_token": refresh_token
+        status: 200,
+        message: "ok",
+        data: {
+            access_token: access_token,
+            refresh_token: refresh_token
         }
     })
 }
@@ -117,16 +119,16 @@ export const refresh = async (req: Request, res: Response) => {
         }
     })
     if (!isValid) {
-        res.status(400).send({message: "ko", data: {"code": "VALIDATE_REFRESH_TOKEN"}});
+        res.status(400).send({status: 400, message: "ko", data: {"code": "VALIDATE_REFRESH_TOKEN"}});
         return
     }
 
     let isExist = await getRefreshTokenByToken(data.refresh_token);
     if (isExist instanceof ErrorDB) {
-        res.status(500).send({message: "ko", data: {isExist}})
+        res.status(500).send({status: 500, message: "ko", data: {isExist}})
         return
     } else if (isExist === null) {
-        res.status(500).send({message: "ko", data: {"error": "the payload returned by the server is empty", "code": "TOKEN_EMPTY"}})
+        res.status(500).send({status: 500, message: "ko", data: {"error": "the payload returned by the server is empty", "code": "TOKEN_EMPTY"}})
         return
     }
 
@@ -134,10 +136,10 @@ export const refresh = async (req: Request, res: Response) => {
     let access_token: string;
     access_token = jwt.sign({id: isExist.user_id}, API_APPINESS.API.getInstance().Security.Secret, { expiresIn: ((60 * 60) * 24) * API_APPINESS.API.getInstance().Security.AccessTokenDuration });
     refresh_token = jwt.sign({}, API_APPINESS.API.getInstance().Security.Secret, { expiresIn: ((60 * 60) * 24) * API_APPINESS.API.getInstance().Security.RefreshTokenDuration });
-    
+
     let exp: (string | number | Date) = new Date();
     exp.setHours((24 * API_APPINESS.API.getInstance().Security.RefreshTokenDuration))
-    
+
     const payload = {
         ip: req.ip,
         token: refresh_token,
@@ -148,28 +150,29 @@ export const refresh = async (req: Request, res: Response) => {
 
     let err: ErrorDB | null = await storeRefreshToken(payload);
     if (err !== null) {
-        res.status(500).send({message: "ko", data: {err}})
+        res.status(500).send({status: 500, message: "ko", data: {err}})
         return
     }
 
     let deleteToken = deleteRefreshTokenByToken(data.refresh_token)
     if (deleteToken instanceof ErrorDB) {
-        res.status(500).send({message: "ko", data: {deleteToken}})
+        res.status(500).send({status: 500, message: "ko", data: {deleteToken}})
         return
     }
 
     res.status(200).send({
-        "message": "ok",
-        "data": {
-            "access_token": access_token,
-            "refresh_token": refresh_token
+        status: 200,
+        message: "ok",
+        data: {
+            access_token: access_token,
+            refresh_token: refresh_token
         }
     })
 
 }
 
 export const getCurrentUserController = (req: Request, res: Response) => {
-    const user = getCurrentUser(req)
+    const user = User.getInstance()?.getUserID()
 
-    res.status(200).send({user: user})
+    res.status(200).send({status: 200, message: "ok", data: user})
 }
