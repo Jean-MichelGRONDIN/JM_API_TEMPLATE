@@ -6,6 +6,6 @@ export async function seed(knex: Knex): Promise<void> {
 
     // Inserts seed entries
     await knex("users").insert([
-        { firstname: "admin", lastname: "admin", email: "jean-michel.grondin@epitech.eu", password: knex.raw("crypt('6JM_api_TEMPLATE9', gen_salt('bf'))") },
+        { firstname: "Jean-Michel", lastname: "GRONDIN", email: "jean-michel.grondin@epitech.eu", password: knex.raw("crypt('6JM_api_TEMPLATE9', gen_salt('bf'))") },
     ]);
 };
