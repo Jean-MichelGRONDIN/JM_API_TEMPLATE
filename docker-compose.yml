@@ -20,7 +20,7 @@ services:
         command: bash -c "npm i && npm run serve"
         restart: "always"
         networks:
-          - api-auth-networks
+          - api-template-networks
 
     database:
         image: "postgres:13"
@@ -36,12 +36,13 @@ services:
           POSTGRES_DB: ${POSTGRES_DB}
         volumes:
           - db-data:/var/lib/postgresql/data
+          - ./sql/crypt.sql:/docker-entrypoint-initdb.d/crypt.sql
         env_file:
           - .env
         command: -p ${POSTGRES_PORT}
         restart: "always"
         networks:
-          - api-auth-networks
+          - api-template-networks
 
 volumes:
     db-data:
