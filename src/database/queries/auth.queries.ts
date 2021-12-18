@@ -7,8 +7,7 @@ import knex from '../database'
 const IsUserExitSQL = `
 SELECT EXISTS(
     SELECT * FROM users
-    WHERE email = ?
-    AND deleted_at IS NULL
+    WHERE email = crypt(?, email)
 );
 `
 
@@ -18,7 +17,7 @@ export const knexIsUserExit = (email: string): Knex.Raw<any> => {
 
 const SingnupSQL = `
 INSERT INTO users (firstname, lastname, email, password)
-VALUES (?, ?, ?, crypt(?, gen_salt('bf')))
+VALUES (crypt(?, gen_salt('bf')), crypt(?, gen_salt('bf')), crypt(?, gen_salt('bf')), crypt(?, gen_salt('bf')))
 RETURNING id, firstname, lastname, email;
 `
 
@@ -37,7 +36,7 @@ export const knexStoreRefreshToken = (payload: RefreshToken): Knex.Raw<any> => {
 
 const FindUserByPasswordAndEmailSQL = `
 SELECT id, email FROM users
-WHERE email = ?
+WHERE email = crypt(?, email)
 AND password = crypt(?, password)
 AND deleted_at IS NULL;
 `
